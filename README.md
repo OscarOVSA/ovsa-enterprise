@@ -66,6 +66,8 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [Visión del producto](docs/architecture/01-product-vision.md)
 - [Alcance funcional](docs/architecture/02-functional-scope.md)
 - [Límites del sistema](docs/architecture/03-system-boundaries.md)
+- [Dominios y bounded contexts](docs/architecture/04-domain-contexts.md)
+- [Lenguaje ubicuo](docs/architecture/05-ubiquitous-language.md)
 
 ## Autor
 
