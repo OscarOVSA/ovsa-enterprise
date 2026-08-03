@@ -1,0 +1,70 @@
+# OVSA Enterprise Operations
+
+Plataforma empresarial basada en microservicios para administrar organizaciones, usuarios, inventario, operaciones, órdenes de trabajo, reportes, auditoría y alertas.
+
+## Estado del proyecto
+
+El proyecto se encuentra actualmente en Sprint 0: definición funcional, arquitectura, contratos y planificación técnica.
+
+Todavía no se han implementado los microservicios.
+
+## Objetivo general
+
+Construir una plataforma empresarial escalable, segura, observable y mantenible, basada en cuatro microservicios independientes.
+
+## Microservicios planificados
+
+1. Identity Service
+2. Inventory Service
+3. Operations Service
+4. Reporting Service
+
+## Componentes de plataforma
+
+* API Gateway
+* Proveedor de identidad
+* Broker de mensajería
+* Base de datos por servicio
+* Caché
+* Almacenamiento de archivos
+* Monitoreo y observabilidad
+* Aplicación web
+
+## Principios iniciales
+
+* Cada microservicio será responsable de su propio dominio.
+* Cada microservicio tendrá su propia base de datos.
+* Ningún servicio accederá directamente a las tablas de otro.
+* La comunicación inmediata utilizará API REST.
+* La integración asíncrona utilizará eventos.
+* Las operaciones importantes deberán ser auditables.
+* La seguridad se validará en el gateway y en cada microservicio.
+* Los contratos se definirán antes de implementar las funcionalidades.
+* Cada servicio podrá construirse y desplegarse independientemente.
+
+## Estructura del repositorio
+
+```text
+services/        Microservicios empresariales
+platform/        Componentes propios de plataforma
+frontend/        Aplicación web
+infrastructure/  Contenedores, despliegue y observabilidad
+scripts/         Automatizaciones
+docs/            Documentación del proyecto
+```
+
+## Tecnologías
+
+Las tecnologías y sus versiones serán seleccionadas y justificadas durante Sprint 0.
+
+## Ejecución
+
+El proyecto todavía no es ejecutable. Los comandos de construcción y ejecución serán agregados durante los siguientes sprints.
+
+## Documentación
+
+La documentación técnica se encuentra dentro de la carpeta `docs`.
+
+## Autor
+
+Oscar Valenzuela

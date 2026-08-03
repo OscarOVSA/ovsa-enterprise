@@ -1,0 +1,58 @@
+# Variables y secretos
+.env
+.env.*
+!.env.example
+
+# Java y Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/timing.properties
+
+# Node y React
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Docker
+docker-data/
+volumes/
+
+# Reportes de pruebas
+surefire-reports/
+failsafe-reports/
+playwright-report/
+test-results/
+
+# Archivos comprimidos
+*.zip
+*.rar
+*.7z
