@@ -63,7 +63,9 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 
 ## Documentación
 
-La documentación técnica se encuentra dentro de la carpeta `docs`.
+- [Visión del producto](docs/architecture/01-product-vision.md)
+- [Alcance funcional](docs/architecture/02-functional-scope.md)
+- [Límites del sistema](docs/architecture/03-system-boundaries.md)
 
 ## Autor
 
