@@ -73,6 +73,8 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [C4: componentes](docs/architecture/08-c4-component-view.md)
 - [Decisiones arquitectónicas](docs/adr/README.md)
 - [Estándares y contratos API](docs/api/README.md)
+- [Eventos y mensajería](docs/events/README.md)
+
 ## Autor
 
 Oscar Valenzuela

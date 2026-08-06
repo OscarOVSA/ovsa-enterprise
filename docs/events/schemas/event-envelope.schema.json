@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.ovsa.local/events/event-envelope.schema.json",
+  "title": "OVSA Event Envelope",
+  "description": "Sobre estándar para eventos de integración de OVSA.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "organizationId",
+    "aggregateType",
+    "aggregateId",
+    "correlationId",
+    "source",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "pattern": "^(identity|inventory|operations|reporting)\\.[a-z0-9-]+\\.[a-z0-9-]+\\.v[1-9][0-9]*$",
+      "examples": [
+        "inventory.receipt.confirmed.v1"
+      ]
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": [
+        "Receipt"
+      ]
+    },
+    "aggregateId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "traceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "identity-service",
+        "inventory-service",
+        "operations-service",
+        "reporting-service"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "integer",
+          "boolean",
+          "null"
+        ]
+      }
+    }
+  }
+}
