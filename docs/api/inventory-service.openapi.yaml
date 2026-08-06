@@ -1,0 +1,535 @@
+openapi: 3.1.0
+
+info:
+  title: OVSA Inventory Service API
+  version: 1.0.0
+  description: >
+    API responsable de productos, bodegas, stock,
+    movimientos y documentos de inventario.
+
+servers:
+  - url: http://localhost:8080
+    description: API Gateway local
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Products
+  - name: Stock
+  - name: Receipts
+
+paths:
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: Listar productos
+      operationId: listProducts
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/Page'
+        - $ref: './common-components.yaml#/components/parameters/Size'
+        - $ref: './common-components.yaml#/components/parameters/Sort'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Página de productos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+        '401':
+          $ref: './common-components.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+
+    post:
+      tags: [Products]
+      summary: Crear un producto
+      operationId: createProduct
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Producto creado.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: './common-components.yaml#/components/responses/BadRequest'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '409':
+          $ref: './common-components.yaml#/components/responses/Conflict'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/products/{productId}:
+    get:
+      tags: [Products]
+      summary: Consultar un producto
+      operationId: getProductById
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Producto encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+
+    patch:
+      tags: [Products]
+      summary: Actualizar parcialmente un producto
+      operationId: updateProduct
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Producto actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './common-components.yaml#/components/responses/Conflict'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/stock:
+    get:
+      tags: [Stock]
+      summary: Consultar saldos de inventario
+      operationId: listStockBalances
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/Page'
+        - $ref: './common-components.yaml#/components/parameters/Size'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: warehouseId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Página de saldos de inventario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockBalancePage'
+        '401':
+          $ref: './common-components.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+
+  /api/v1/receipts:
+    post:
+      tags: [Receipts]
+      summary: Crear un borrador de entrada
+      operationId: createReceipt
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReceiptRequest'
+      responses:
+        '201':
+          description: Entrada creada en estado DRAFT.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptResponse'
+        '400':
+          $ref: './common-components.yaml#/components/responses/BadRequest'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/receipts/{receiptId}/confirm:
+    post:
+      tags: [Receipts]
+      summary: Confirmar una entrada de inventario
+      operationId: confirmReceipt
+      parameters:
+        - $ref: '#/components/parameters/ReceiptId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - $ref: './common-components.yaml#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Entrada confirmada y stock actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptResponse'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './common-components.yaml#/components/responses/Conflict'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './common-components.yaml#/components/securitySchemes/bearerAuth'
+
+  parameters:
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ReceiptId:
+      name: receiptId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ProductStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+
+    UnitOfMeasure:
+      type: string
+      enum:
+        - UNIT
+        - KILOGRAM
+        - LITER
+        - METER
+        - BOX
+
+    CreateProductRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sku
+        - name
+        - unitOfMeasure
+        - minimumStock
+        - maximumStock
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: PRD-0001
+        barcode:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        categoryId:
+          type: string
+          format: uuid
+        unitOfMeasure:
+          $ref: '#/components/schemas/UnitOfMeasure'
+        minimumStock:
+          type: number
+          minimum: 0
+        maximumStock:
+          type: number
+          exclusiveMinimum: 0
+        requiresLot:
+          type: boolean
+          default: false
+        requiresSerialNumber:
+          type: boolean
+          default: false
+
+    UpdateProductRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        categoryId:
+          type: string
+          format: uuid
+        minimumStock:
+          type: number
+          minimum: 0
+        maximumStock:
+          type: number
+          exclusiveMinimum: 0
+        version:
+          type: integer
+          format: int64
+          minimum: 0
+
+    ProductResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - sku
+        - name
+        - unitOfMeasure
+        - minimumStock
+        - maximumStock
+        - status
+        - createdAt
+        - updatedAt
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        barcode:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        unitOfMeasure:
+          $ref: '#/components/schemas/UnitOfMeasure'
+        minimumStock:
+          type: number
+        maximumStock:
+          type: number
+        requiresLot:
+          type: boolean
+        requiresSerialNumber:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    ProductPage:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        page:
+          $ref: './common-components.yaml#/components/schemas/PageMetadata'
+
+    StockBalanceResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - productId
+        - warehouseId
+        - availableQuantity
+        - reservedQuantity
+        - damagedQuantity
+        - updatedAt
+        - version
+      properties:
+        productId:
+          type: string
+          format: uuid
+        warehouseId:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        availableQuantity:
+          type: number
+          minimum: 0
+        reservedQuantity:
+          type: number
+          minimum: 0
+        damagedQuantity:
+          type: number
+          minimum: 0
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    StockBalancePage:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockBalanceResponse'
+        page:
+          $ref: './common-components.yaml#/components/schemas/PageMetadata'
+
+    ReceiptStatus:
+      type: string
+      enum:
+        - DRAFT
+        - CONFIRMED
+        - REVERSED
+        - CANCELLED
+
+    ReceiptItemRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - productId
+        - locationId
+        - quantity
+      properties:
+        productId:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+        lotNumber:
+          type: string
+          maxLength: 100
+
+    CreateReceiptRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - warehouseId
+        - supplierId
+        - referenceNumber
+        - items
+      properties:
+        warehouseId:
+          type: string
+          format: uuid
+        supplierId:
+          type: string
+          format: uuid
+        referenceNumber:
+          type: string
+          maxLength: 100
+        notes:
+          type: string
+          maxLength: 1000
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReceiptItemRequest'
+
+    ReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - receiptNumber
+        - warehouseId
+        - supplierId
+        - status
+        - items
+        - createdAt
+        - updatedAt
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+        receiptNumber:
+          type: string
+        warehouseId:
+          type: string
+          format: uuid
+        supplierId:
+          type: string
+          format: uuid
+        referenceNumber:
+          type: string
+        status:
+          $ref: '#/components/schemas/ReceiptStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceiptItemRequest'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64

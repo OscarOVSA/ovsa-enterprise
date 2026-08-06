@@ -1,0 +1,194 @@
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Número de página comenzando en cero.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    Size:
+      name: size
+      in: query
+      description: Cantidad máxima de elementos por página.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    Sort:
+      name: sort
+      in: query
+      description: Ordenamiento con formato campo,dirección.
+      example: name,asc
+      schema:
+        type: string
+
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      description: Identificador utilizado para seguir la solicitud.
+      schema:
+        type: string
+        format: uuid
+
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Clave única para impedir efectos empresariales duplicados.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ValidationError:
+      type: object
+      additionalProperties: false
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          example: name
+        message:
+          type: string
+          example: El nombre es obligatorio.
+        rejectedValue:
+          description: Valor rechazado, cuando sea seguro mostrarlo.
+
+    ProblemDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+        - code
+        - timestamp
+        - correlationId
+        - errors
+      properties:
+        type:
+          type: string
+          format: uri
+          example: https://errors.ovsa.local/common/validation-error
+        title:
+          type: string
+          example: Solicitud inválida
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+          example: 422
+        detail:
+          type: string
+          example: Uno o más campos no cumplen las validaciones.
+        instance:
+          type: string
+          example: /api/v1/products
+        code:
+          type: string
+          example: COMMON-VALIDATION-001
+        timestamp:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+          format: uuid
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+
+    PageMetadata:
+      type: object
+      additionalProperties: false
+      required:
+        - number
+        - size
+        - totalElements
+        - totalPages
+        - first
+        - last
+      properties:
+        number:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        first:
+          type: boolean
+        last:
+          type: boolean
+
+  responses:
+    BadRequest:
+      description: La solicitud posee un formato inválido.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+
+    Unauthorized:
+      description: No existe una autenticación válida.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+
+    Forbidden:
+      description: El usuario no está autorizado para ejecutar la operación.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+
+    NotFound:
+      description: El recurso solicitado no existe.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+
+    Conflict:
+      description: La solicitud entra en conflicto con el estado actual.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+
+    UnprocessableContent:
+      description: Los datos no cumplen las validaciones empresariales.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+
+    InternalServerError:
+      description: Ocurrió un error interno inesperado.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'

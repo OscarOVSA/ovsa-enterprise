@@ -1,0 +1,319 @@
+openapi: 3.1.0
+
+info:
+  title: OVSA Reporting Service API
+  version: 1.0.0
+  description: >
+    API responsable de dashboards, trabajos de reportes,
+    auditoría y alertas.
+
+servers:
+  - url: http://localhost:8080
+    description: API Gateway local
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Dashboards
+  - name: Reports
+  - name: Audit
+
+paths:
+  /api/v1/dashboards/executive:
+    get:
+      tags: [Dashboards]
+      summary: Consultar el dashboard ejecutivo
+      operationId: getExecutiveDashboard
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Indicadores ejecutivos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutiveDashboardResponse'
+        '401':
+          $ref: './common-components.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/reports/inventory:
+    post:
+      tags: [Reports]
+      summary: Solicitar un reporte de inventario
+      operationId: requestInventoryReport
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - $ref: './common-components.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryReportRequest'
+      responses:
+        '202':
+          description: Solicitud aceptada para procesamiento.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportJobResponse'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/report-jobs/{reportJobId}:
+    get:
+      tags: [Reports]
+      summary: Consultar el estado de un reporte
+      operationId: getReportJobById
+      parameters:
+        - $ref: '#/components/parameters/ReportJobId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Estado actual del reporte.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportJobResponse'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+
+  /api/v1/audit-events:
+    get:
+      tags: [Audit]
+      summary: Consultar eventos de auditoría
+      operationId: listAuditEvents
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/Page'
+        - $ref: './common-components.yaml#/components/parameters/Size'
+        - $ref: './common-components.yaml#/components/parameters/Sort'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: resourceType
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Página de eventos de auditoría.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEventPage'
+        '401':
+          $ref: './common-components.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './common-components.yaml#/components/securitySchemes/bearerAuth'
+
+  parameters:
+    ReportJobId:
+      name: reportJobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ExecutiveDashboardResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - from
+        - to
+        - activeProducts
+        - lowStockProducts
+        - pendingWorkOrders
+        - completedWorkOrders
+        - generatedAt
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        activeProducts:
+          type: integer
+          format: int64
+          minimum: 0
+        lowStockProducts:
+          type: integer
+          format: int64
+          minimum: 0
+        pendingWorkOrders:
+          type: integer
+          format: int64
+          minimum: 0
+        completedWorkOrders:
+          type: integer
+          format: int64
+          minimum: 0
+        generatedAt:
+          type: string
+          format: date-time
+
+    InventoryReportRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - from
+        - to
+        - format
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        warehouseId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        format:
+          type: string
+          enum:
+            - PDF
+            - XLSX
+
+    ReportJobStatus:
+      type: string
+      enum:
+        - PENDING
+        - PROCESSING
+        - COMPLETED
+        - FAILED
+        - EXPIRED
+
+    ReportJobResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - reportType
+        - status
+        - requestedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        reportType:
+          type: string
+          example: INVENTORY
+        status:
+          $ref: '#/components/schemas/ReportJobStatus'
+        requestedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        downloadUrl:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+        failureCode:
+          type: string
+
+    AuditEventResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - eventType
+        - action
+        - resourceType
+        - resourceId
+        - userId
+        - occurredAt
+        - correlationId
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        action:
+          type: string
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+          format: uuid
+        result:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILURE
+
+    AuditEventPage:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEventResponse'
+        page:
+          $ref: './common-components.yaml#/components/schemas/PageMetadata'

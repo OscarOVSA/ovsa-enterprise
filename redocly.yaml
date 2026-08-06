@@ -1,0 +1,15 @@
+apis:
+  identity@v1:
+    root: docs/api/identity-service.openapi.yaml
+
+  inventory@v1:
+    root: docs/api/inventory-service.openapi.yaml
+
+  operations@v1:
+    root: docs/api/operations-service.openapi.yaml
+
+  reporting@v1:
+    root: docs/api/reporting-service.openapi.yaml
+
+extends:
+  - recommended

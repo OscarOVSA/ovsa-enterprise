@@ -1,0 +1,438 @@
+openapi: 3.1.0
+
+info:
+  title: OVSA Operations Service API
+  version: 1.0.0
+  description: >
+    API responsable de órdenes de trabajo, tareas,
+    asignaciones y solicitudes de materiales.
+
+servers:
+  - url: http://localhost:8080
+    description: API Gateway local
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Work Orders
+  - name: Material Requests
+
+paths:
+  /api/v1/work-orders:
+    get:
+      tags: [Work Orders]
+      summary: Listar órdenes de trabajo
+      operationId: listWorkOrders
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/Page'
+        - $ref: './common-components.yaml#/components/parameters/Size'
+        - $ref: './common-components.yaml#/components/parameters/Sort'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/WorkOrderStatus'
+        - name: priority
+          in: query
+          schema:
+            $ref: '#/components/schemas/WorkOrderPriority'
+      responses:
+        '200':
+          description: Página de órdenes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPage'
+        '401':
+          $ref: './common-components.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+
+    post:
+      tags: [Work Orders]
+      summary: Crear una orden de trabajo
+      operationId: createWorkOrder
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkOrderRequest'
+      responses:
+        '201':
+          description: Orden creada.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: './common-components.yaml#/components/responses/BadRequest'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/work-orders/{workOrderId}:
+    get:
+      tags: [Work Orders]
+      summary: Consultar una orden de trabajo
+      operationId: getWorkOrderById
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Orden encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+
+  /api/v1/work-orders/{workOrderId}/assign:
+    post:
+      tags: [Work Orders]
+      summary: Asignar trabajadores a una orden
+      operationId: assignEmployeesToWorkOrder
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - $ref: './common-components.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignEmployeesRequest'
+      responses:
+        '200':
+          description: Trabajadores asignados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './common-components.yaml#/components/responses/Conflict'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+  /api/v1/work-orders/{workOrderId}/start:
+    post:
+      tags: [Work Orders]
+      summary: Iniciar una orden de trabajo
+      operationId: startWorkOrder
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderId'
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - $ref: './common-components.yaml#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Orden iniciada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './common-components.yaml#/components/responses/Conflict'
+
+  /api/v1/material-requests:
+    post:
+      tags: [Material Requests]
+      summary: Crear una solicitud de materiales
+      operationId: createMaterialRequest
+      parameters:
+        - $ref: './common-components.yaml#/components/parameters/CorrelationId'
+        - $ref: './common-components.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMaterialRequestRequest'
+      responses:
+        '201':
+          description: Solicitud de materiales creada.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialRequestResponse'
+        '403':
+          $ref: './common-components.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './common-components.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './common-components.yaml#/components/responses/Conflict'
+        '422':
+          $ref: './common-components.yaml#/components/responses/UnprocessableContent'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './common-components.yaml#/components/securitySchemes/bearerAuth'
+
+  parameters:
+    WorkOrderId:
+      name: workOrderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    WorkOrderStatus:
+      type: string
+      enum:
+        - DRAFT
+        - PLANNED
+        - ASSIGNED
+        - IN_PROGRESS
+        - PAUSED
+        - PENDING_REVIEW
+        - COMPLETED
+        - CANCELLED
+
+    WorkOrderPriority:
+      type: string
+      enum:
+        - LOW
+        - NORMAL
+        - HIGH
+        - CRITICAL
+
+    CreateWorkOrderRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - siteId
+        - typeId
+        - title
+        - priority
+        - plannedStartAt
+        - plannedEndAt
+      properties:
+        siteId:
+          type: string
+          format: uuid
+        typeId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/WorkOrderPriority'
+        supervisorId:
+          type: string
+          format: uuid
+        plannedStartAt:
+          type: string
+          format: date-time
+        plannedEndAt:
+          type: string
+          format: date-time
+
+    AssignEmployeesRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - employeeIds
+        - version
+      properties:
+        employeeIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        version:
+          type: integer
+          format: int64
+          minimum: 0
+
+    WorkOrderResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - siteId
+        - typeId
+        - title
+        - priority
+        - status
+        - employeeIds
+        - plannedStartAt
+        - plannedEndAt
+        - createdAt
+        - updatedAt
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        siteId:
+          type: string
+          format: uuid
+        typeId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          $ref: '#/components/schemas/WorkOrderPriority'
+        status:
+          $ref: '#/components/schemas/WorkOrderStatus'
+        supervisorId:
+          type: string
+          format: uuid
+        employeeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        plannedStartAt:
+          type: string
+          format: date-time
+        plannedEndAt:
+          type: string
+          format: date-time
+        actualStartAt:
+          type: string
+          format: date-time
+        actualEndAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    WorkOrderPage:
+      type: object
+      additionalProperties: false
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkOrderResponse'
+        page:
+          $ref: './common-components.yaml#/components/schemas/PageMetadata'
+
+    MaterialRequestItem:
+      type: object
+      additionalProperties: false
+      required:
+        - productId
+        - requestedQuantity
+      properties:
+        productId:
+          type: string
+          format: uuid
+        requestedQuantity:
+          type: number
+          exclusiveMinimum: 0
+
+    CreateMaterialRequestRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - workOrderId
+        - warehouseId
+        - items
+      properties:
+        workOrderId:
+          type: string
+          format: uuid
+        warehouseId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+          maxLength: 1000
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/MaterialRequestItem'
+
+    MaterialRequestResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - requestNumber
+        - workOrderId
+        - warehouseId
+        - status
+        - items
+        - createdAt
+        - updatedAt
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+        requestNumber:
+          type: string
+        workOrderId:
+          type: string
+          format: uuid
+        warehouseId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+            - RESERVED
+            - DELIVERED
+            - CANCELLED
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialRequestItem'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
