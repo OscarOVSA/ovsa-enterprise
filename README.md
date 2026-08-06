@@ -71,6 +71,7 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [C4: contexto del sistema](docs/architecture/06-c4-system-context.md)
 - [C4: contenedores](docs/architecture/07-c4-container-view.md)
 - [C4: componentes](docs/architecture/08-c4-component-view.md)
+- [Decisiones arquitectónicas](docs/adr/README.md)
 
 ## Autor
 
