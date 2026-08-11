@@ -74,6 +74,7 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [Decisiones arquitectónicas](docs/adr/README.md)
 - [Estándares y contratos API](docs/api/README.md)
 - [Eventos y mensajería](docs/events/README.md)
+- [Modelo de seguridad](docs/security/README.md)
 
 ## Autor
 
