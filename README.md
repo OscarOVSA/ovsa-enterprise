@@ -75,6 +75,8 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [Estándares y contratos API](docs/api/README.md)
 - [Eventos y mensajería](docs/events/README.md)
 - [Modelo de seguridad](docs/security/README.md)
+- [Requisitos no funcionales](docs/architecture/09-non-functional-requirements.md)
+- [Estrategia de pruebas](docs/testing/README.md)
 
 ## Autor
 
