@@ -77,6 +77,7 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [Modelo de seguridad](docs/security/README.md)
 - [Requisitos no funcionales](docs/architecture/09-non-functional-requirements.md)
 - [Estrategia de pruebas](docs/testing/README.md)
+- [Product Backlog y roadmap](docs/backlog/README.md)
 
 ## Autor
 
