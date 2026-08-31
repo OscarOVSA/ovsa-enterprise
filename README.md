@@ -4,9 +4,17 @@ Plataforma empresarial basada en microservicios para administrar organizaciones,
 
 ## Estado del proyecto
 
-El proyecto se encuentra actualmente en Sprint 0: definición funcional, arquitectura, contratos y planificación técnica.
+## Estado del proyecto
 
-Todavía no se han implementado los microservicios.
+Sprint 0 completado.
+
+La arquitectura, contratos, seguridad, eventos, estrategia de pruebas y backlog inicial se encuentran definidos.
+
+El siguiente sprint es:
+
+**Sprint 1 — Plataforma ejecutable.**
+
+Durante Sprint 1 comenzará la implementación técnica con Java, Spring Boot, Maven, Docker, Keycloak, MySQL, RabbitMQ y API Gateway.
 
 ## Objetivo general
 
@@ -78,6 +86,8 @@ El proyecto todavía no es ejecutable. Los comandos de construcción y ejecució
 - [Requisitos no funcionales](docs/architecture/09-non-functional-requirements.md)
 - [Estrategia de pruebas](docs/testing/README.md)
 - [Product Backlog y roadmap](docs/backlog/README.md)
+- [Cierre de Sprint 0](docs/backlog/sprint-0-closure.md)
+- [Changelog](CHANGELOG.md)
 
 ## Autor
 
